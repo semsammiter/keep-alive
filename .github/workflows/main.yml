@@ -1,0 +1,30 @@
+name: Monthly Activity
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Запуск 1-го числа каждого месяца в 00:00 UTC
+  workflow_dispatch: # Кнопка для ручного запуска
+
+permissions:
+  contents: write # Даем права на запись (создание коммитов)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Обновил до актуальной версии v4
+
+      - name: Update timestamp
+        run: date > last_active.txt
+
+      - name: Commit and Push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add last_active.txt
+          # Проверяем, есть ли изменения, чтобы избежать ошибки пустого коммита
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Keep alive commit" && git push)
+
+      # Уведомление на почту (встроено в GitHub по умолчанию)
+      # GitHub автоматически отправляет письмо владельцу репозитория, 
